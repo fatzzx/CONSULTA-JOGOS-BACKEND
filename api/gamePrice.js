@@ -21,6 +21,7 @@ export async function GET(request) {
     }
 
     const gameID = games[0].gameID;
+
     const gameInfoRes = await fetch(
       `https://www.cheapshark.com/api/1.0/games?id=${gameID}`
     );
@@ -41,12 +42,10 @@ export async function GET(request) {
     for (const deal of deals) {
       if (!visitedStores.has(deal.storeID)) {
         visitedStores.add(deal.storeID);
-
         const storeDeals = deals.filter((d) => d.storeID === deal.storeID);
         const best = storeDeals.reduce((lowest, current) =>
           current.currentPrice < lowest.currentPrice ? current : lowest
         );
-
         bestDeals.push(best);
       }
     }
@@ -67,10 +66,19 @@ export async function GET(request) {
       discount: deal.discount,
     }));
 
+    const cheapest = gameInfo.cheapestPriceEver;
+    const cheapestDate = new Date(cheapest.date * 1000)
+      .toISOString()
+      .split("T")[0];
+
     const response = {
       title: gameInfo.info.title,
       thumbnail: gameInfo.info.thumb,
       offers,
+      lowestHistoricalPrice: {
+        price: parseFloat(cheapest.price),
+        date: cheapestDate,
+      },
     };
 
     return Response.json(response);
