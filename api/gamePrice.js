@@ -1,11 +1,24 @@
 export const dynamic = "force-dynamic";
 
 export async function GET(request) {
+  const headers = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+  };
+
+  if (request.method === "OPTIONS") {
+    return new Response(null, { status: 204, headers });
+  }
+
   const { searchParams } = new URL(request.url);
   const name = searchParams.get("name");
 
   if (!name) {
-    return Response.json({ error: "Game name is required." }, { status: 400 });
+    return new Response(JSON.stringify({ error: "Game name is required." }), {
+      status: 400,
+      headers,
+    });
   }
 
   try {
@@ -17,7 +30,10 @@ export async function GET(request) {
     const games = await dealsRes.json();
 
     if (!games || games.length === 0) {
-      return Response.json({ error: "Game not found." }, { status: 404 });
+      return new Response(JSON.stringify({ error: "Game not found." }), {
+        status: 404,
+        headers,
+      });
     }
 
     const gameID = games[0].gameID;
@@ -81,12 +97,18 @@ export async function GET(request) {
       },
     };
 
-    return Response.json(response);
+    return new Response(JSON.stringify(response), {
+      status: 200,
+      headers,
+    });
   } catch (error) {
     console.error(error);
-    return Response.json(
-      { error: "Failed to fetch game data." },
-      { status: 500 }
+    return new Response(
+      JSON.stringify({ error: "Failed to fetch game data." }),
+      {
+        status: 500,
+        headers,
+      }
     );
   }
 }
